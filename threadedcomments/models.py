@@ -1,3 +1,4 @@
+import django
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -50,14 +51,14 @@ class ThreadedCommentManager(models.Manager):
         Runs a depth-first search on all comments related to the given content_object.
         This depth-first search adds a ``depth`` attribute to the comment which
         signifies how how deeply nested the comment is away from the original object.
-        
+
         If root is specified, it will start the tree from that comment's ID.
-        
+
         Ideally, one would use this ``depth`` attribute in the display of the comment to
         offset that comment by some specified length.
-        
+
         The following is a (VERY) simple example of how the depth property might be used in a template:
-        
+
             {% for comment in comment_tree %}
                 <p style="margin-left: {{ comment.depth }}em">{{ comment.comment }}</p>
             {% endfor %}
@@ -98,13 +99,13 @@ class ThreadedCommentManager(models.Manager):
         A simple wrapper around ``create`` for a given ``content_object``.
         """
         return self.create(**self._generate_object_kwarg_dict(content_object, **kwargs))
-    
+
     def get_or_create_for_object(self, content_object, **kwargs):
         """
         A simple wrapper around ``get_or_create`` for a given ``content_object``.
         """
         return self.get_or_create(**self._generate_object_kwarg_dict(content_object, **kwargs))
-    
+
     def get_for_object(self, content_object, **kwargs):
         """
         A simple wrapper around ``get`` for a given ``content_object``.
@@ -116,27 +117,30 @@ class ThreadedCommentManager(models.Manager):
         Prepopulates a QuerySet with all comments related to the given ``content_object``.
         """
         return self.filter(**self._generate_object_kwarg_dict(content_object, **kwargs))
+    if django.VERSION > (1, 5):
+        def get_query_set(self, *args, **kwargs):
+            return super(ThreadedCommentManager, self).get_queryset(*args, **kwargs)
 
 class PublicThreadedCommentManager(ThreadedCommentManager):
     """
     A ``Manager`` which borrows all of the same methods from ``ThreadedCommentManager``,
-    but which also restricts the queryset to only the published methods 
+    but which also restricts the queryset to only the published methods
     (in other words, ``is_public = True``).
     """
     def get_query_set(self):
-        return super(ThreadedCommentManager, self).get_query_set().filter(
+        return super(PublicThreadedCommentManager, self).get_query_set().filter(
             Q(is_public = True) | Q(is_approved = True)
         )
 
 class ThreadedComment(models.Model):
     """
-    A threaded comment which must be associated with an instance of 
+    A threaded comment which must be associated with an instance of
     ``django.contrib.auth.models.User``.  It is given its hierarchy by
     a nullable relationship back on itself named ``parent``.
-    
+
     This ``ThreadedComment`` supports several kinds of markup languages,
     including Textile, Markdown, and ReST.
-    
+
     It also includes two Managers: ``objects``, which is the same as the normal
     ``objects`` Manager with a few added utility functions (see above), and
     ``public``, which has those same utility functions but limits the QuerySet to
@@ -146,37 +150,37 @@ class ThreadedComment(models.Model):
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField(_('object ID'))
     content_object = generic.GenericForeignKey()
-    
+
     # Hierarchy Field
     parent = models.ForeignKey('self', null=True, blank=True, default=None, related_name='children')
-    
+
     # User Field
     user = models.ForeignKey(User)
-    
+
     # Date Fields
     date_submitted = models.DateTimeField(_('date/time submitted'), default = datetime.now)
     date_modified = models.DateTimeField(_('date/time modified'), default = datetime.now)
     date_approved = models.DateTimeField(_('date/time approved'), default=None, null=True, blank=True)
-    
+
     # Meat n' Potatoes
     comment = models.TextField(_('comment'))
     markup = models.IntegerField(choices=MARKUP_CHOICES, default=DEFAULT_MARKUP, null=True, blank=True)
-    
+
     # Status Fields
     is_public = models.BooleanField(_('is public'), default = True)
     is_approved = models.BooleanField(_('is approved'), default = False)
-    
+
     # Extra Field
     ip_address = models.IPAddressField(_('IP address'), null=True, blank=True)
-    
+
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
-    
+
     def __unicode__(self):
         if len(self.comment) > 50:
             return self.comment[:50] + "..."
         return self.comment[:50]
-    
+
     def save(self, **kwargs):
         if not self.markup:
             self.markup = DEFAULT_MARKUP
@@ -184,19 +188,19 @@ class ThreadedComment(models.Model):
         if not self.date_approved and self.is_approved:
             self.date_approved = datetime.now()
         super(ThreadedComment, self).save(**kwargs)
-    
+
     def get_content_object(self):
         """
         Wrapper around the GenericForeignKey due to compatibility reasons
         and due to ``list_display`` limitations.
         """
         return self.content_object
-    
+
     def get_base_data(self, show_dates=True):
         """
         Outputs a Python dictionary representing the most useful bits of
         information about this particular object instance.
-        
+
         This is mostly useful for testing purposes, as the output from the
         serializer changes from run to run.  However, this may end up being
         useful for JSON and/or XML data exchange going forward and as the
@@ -222,24 +226,24 @@ class ThreadedComment(models.Model):
             to_return['date_modified'] = self.date_modified
             to_return['date_approved'] = self.date_approved
         return to_return
-    
+
     class Meta:
         ordering = ('-date_submitted',)
         verbose_name = _("Threaded Comment")
         verbose_name_plural = _("Threaded Comments")
         get_latest_by = "date_submitted"
 
-    
+
 class FreeThreadedComment(models.Model):
     """
-    A threaded comment which need not be associated with an instance of 
+    A threaded comment which need not be associated with an instance of
     ``django.contrib.auth.models.User``.  Instead, it requires minimally a name,
     and maximally a name, website, and e-mail address.  It is given its hierarchy
     by a nullable relationship back on itself named ``parent``.
-    
+
     This ``FreeThreadedComment`` supports several kinds of markup languages,
     including Textile, Markdown, and ReST.
-    
+
     It also includes two Managers: ``objects``, which is the same as the normal
     ``objects`` Manager with a few added utility functions (see above), and
     ``public``, which has those same utility functions but limits the QuerySet to
@@ -249,39 +253,39 @@ class FreeThreadedComment(models.Model):
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField(_('object ID'))
     content_object = generic.GenericForeignKey()
-    
+
     # Hierarchy Field
     parent = models.ForeignKey('self', null = True, blank=True, default = None, related_name='children')
-    
+
     # User-Replacement Fields
     name = models.CharField(_('name'), max_length = 128)
     website = models.URLField(_('site'), blank = True)
     email = models.EmailField(_('e-mail address'), blank = True)
-    
+
     # Date Fields
     date_submitted = models.DateTimeField(_('date/time submitted'), default = datetime.now)
     date_modified = models.DateTimeField(_('date/time modified'), default = datetime.now)
     date_approved = models.DateTimeField(_('date/time approved'), default=None, null=True, blank=True)
-    
+
     # Meat n' Potatoes
     comment = models.TextField(_('comment'))
     markup = models.IntegerField(choices=MARKUP_CHOICES, default=DEFAULT_MARKUP, null=True, blank=True)
-    
+
     # Status Fields
     is_public = models.BooleanField(_('is public'), default = True)
     is_approved = models.BooleanField(_('is approved'), default = False)
-    
+
     # Extra Field
     ip_address = models.IPAddressField(_('IP address'), null=True, blank=True)
-    
+
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
-    
+
     def __unicode__(self):
         if len(self.comment) > 50:
             return self.comment[:50] + "..."
         return self.comment[:50]
-    
+
     def save(self, **kwargs):
         if not self.markup:
             self.markup = DEFAULT_MARKUP
@@ -289,19 +293,19 @@ class FreeThreadedComment(models.Model):
         if not self.date_approved and self.is_approved:
             self.date_approved = datetime.now()
         super(FreeThreadedComment, self).save()
-    
+
     def get_content_object(self, **kwargs):
         """
         Wrapper around the GenericForeignKey due to compatibility reasons
         and due to ``list_display`` limitations.
         """
         return self.content_object
-    
+
     def get_base_data(self, show_dates=True):
         """
         Outputs a Python dictionary representing the most useful bits of
         information about this particular object instance.
-        
+
         This is mostly useful for testing purposes, as the output from the
         serializer changes from run to run.  However, this may end up being
         useful for JSON and/or XML data exchange going forward and as the
@@ -329,19 +333,9 @@ class FreeThreadedComment(models.Model):
             to_return['date_modified'] = self.date_modified
             to_return['date_approved'] = self.date_approved
         return to_return
-    
+
     class Meta:
         ordering = ('-date_submitted',)
         verbose_name = _("Free Threaded Comment")
         verbose_name_plural = _("Free Threaded Comments")
         get_latest_by = "date_submitted"
-
-
-class TestModel(models.Model):
-    """
-    This model is simply used by this application's test suite as a model to 
-    which to attach comments.
-    """
-    name = models.CharField(max_length=5)
-    is_public = models.BooleanField(default=True)
-    date = models.DateTimeField(default=datetime.now)
