@@ -9,64 +9,78 @@ from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.utils.encoding import force_unicode
 
-DEFAULT_MAX_COMMENT_LENGTH = getattr(settings, 'DEFAULT_MAX_COMMENT_LENGTH', 1000)
+DEFAULT_MAX_COMMENT_LENGTH = getattr(
+    settings,
+    'DEFAULT_MAX_COMMENT_LENGTH',
+    1000,
+)
 DEFAULT_MAX_COMMENT_DEPTH = getattr(settings, 'DEFAULT_MAX_COMMENT_DEPTH', 8)
 
 MARKDOWN = 1
 TEXTILE = 2
 REST = 3
-#HTML = 4
+# HTML = 4
 PLAINTEXT = 5
 MARKUP_CHOICES = (
     (MARKDOWN, _("markdown")),
     (TEXTILE, _("textile")),
     (REST, _("restructuredtext")),
-#    (HTML, _("html")),
+    # (HTML, _("html")),
     (PLAINTEXT, _("plaintext")),
 )
 
 DEFAULT_MARKUP = getattr(settings, 'DEFAULT_MARKUP', PLAINTEXT)
 
+
 def dfs(node, all_nodes, depth):
     """
-    Performs a recursive depth-first search starting at ``node``.  This function
-    also annotates an attribute, ``depth``, which is an integer that represents
-    how deeply nested this node is away from the original object.
+    Performs a recursive depth-first search starting at ``node``.  This
+    function also annotates an attribute, ``depth``, which is an integer that
+    represents how deeply nested this node is away from the original object.
     """
     node.depth = depth
-    to_return = [node,]
+    to_return = [node]
     for subnode in all_nodes:
         if subnode.parent and subnode.parent.id == node.id:
             to_return.extend(dfs(subnode, all_nodes, depth+1))
     return to_return
 
+
 class ThreadedCommentManager(models.Manager):
     """
-    A ``Manager`` which will be attached to each comment model.  It helps to facilitate
-    the retrieval of comments in tree form and also has utility methods for
-    creating and retrieving objects related to a specific content object.
+    A ``Manager`` which will be attached to each comment model.  It helps to
+    facilitate the retrieval of comments in tree form and also has utility
+    methods for creating and retrieving objects related to a specific content
+    object.
     """
     def get_tree(self, content_object, root=None):
         """
-        Runs a depth-first search on all comments related to the given content_object.
-        This depth-first search adds a ``depth`` attribute to the comment which
-        signifies how how deeply nested the comment is away from the original object.
+        Runs a depth-first search on all comments related to the given
+        content_object.  This depth-first search adds a ``depth`` attribute to
+        the comment which signifies how how deeply nested the comment is away
+        from the original object.
 
         If root is specified, it will start the tree from that comment's ID.
 
-        Ideally, one would use this ``depth`` attribute in the display of the comment to
-        offset that comment by some specified length.
+        Ideally, one would use this ``depth`` attribute in the display of the
+        comment to offset that comment by some specified length.
 
-        The following is a (VERY) simple example of how the depth property might be used in a template:
+        The following is a (VERY) simple example of how the depth property
+        might be used in a template:
 
             {% for comment in comment_tree %}
-                <p style="margin-left: {{ comment.depth }}em">{{ comment.comment }}</p>
+                <p style="margin-left: {{ comment.depth }}em">{{ comment.comment }}</p>  # noqa
             {% endfor %}
         """
         content_type = ContentType.objects.get_for_model(content_object)
+        object_id = getattr(
+            content_object,
+            'pk',
+            getattr(content_object, 'id'),
+        )
         children = list(self.get_query_set().filter(
-            content_type = content_type,
-            object_id = getattr(content_object, 'pk', getattr(content_object, 'id')),
+            content_type=content_type,
+            object_id=object_id,
         ).select_related().order_by('date_submitted'))
         to_return = []
         if root:
@@ -88,49 +102,73 @@ class ThreadedCommentManager(models.Manager):
 
     def _generate_object_kwarg_dict(self, content_object, **kwargs):
         """
-        Generates the most comment keyword arguments for a given ``content_object``.
+        Generates the most comment keyword arguments for a given
+        ``content_object``.
         """
-        kwargs['content_type'] = ContentType.objects.get_for_model(content_object)
-        kwargs['object_id'] = getattr(content_object, 'pk', getattr(content_object, 'id'))
+        kwargs['content_type'] = ContentType.objects.get_for_model(
+            content_object,
+        )
+        kwargs['object_id'] = getattr(
+            content_object,
+            'pk',
+            getattr(content_object, 'id'),
+        )
         return kwargs
 
     def create_for_object(self, content_object, **kwargs):
         """
         A simple wrapper around ``create`` for a given ``content_object``.
         """
-        return self.create(**self._generate_object_kwarg_dict(content_object, **kwargs))
+        return self.create(
+                **self._generate_object_kwarg_dict(content_object, **kwargs))
 
     def get_or_create_for_object(self, content_object, **kwargs):
         """
-        A simple wrapper around ``get_or_create`` for a given ``content_object``.
+        A simple wrapper around ``get_or_create`` for a given
+        ``content_object``.
         """
-        return self.get_or_create(**self._generate_object_kwarg_dict(content_object, **kwargs))
+        return self.get_or_create(
+            **self._generate_object_kwarg_dict(content_object, **kwargs)
+        )
 
     def get_for_object(self, content_object, **kwargs):
         """
         A simple wrapper around ``get`` for a given ``content_object``.
         """
-        return self.get(**self._generate_object_kwarg_dict(content_object, **kwargs))
+        return self.get(
+            **self._generate_object_kwarg_dict(content_object, **kwargs)
+        )
 
     def all_for_object(self, content_object, **kwargs):
         """
-        Prepopulates a QuerySet with all comments related to the given ``content_object``.
+        Prepopulates a QuerySet with all comments related to the given
+        ``content_object``.
         """
-        return self.filter(**self._generate_object_kwarg_dict(content_object, **kwargs))
+        return self.filter(
+            **self._generate_object_kwarg_dict(content_object, **kwargs)
+        )
     if django.VERSION > (1, 5):
         def get_query_set(self, *args, **kwargs):
-            return super(ThreadedCommentManager, self).get_queryset(*args, **kwargs)
+            return super(
+                ThreadedCommentManager,
+                self,
+            ).get_queryset(*args, **kwargs)
+
 
 class PublicThreadedCommentManager(ThreadedCommentManager):
     """
-    A ``Manager`` which borrows all of the same methods from ``ThreadedCommentManager``,
-    but which also restricts the queryset to only the published methods
-    (in other words, ``is_public = True``).
+    A ``Manager`` which borrows all of the same methods from
+    ``ThreadedCommentManager``, but which also restricts the queryset to only
+    the published methods (in other words, ``is_public = True``).
     """
     def get_query_set(self):
-        return super(PublicThreadedCommentManager, self).get_query_set().filter(
-            Q(is_public = True) | Q(is_approved = True)
+        return super(
+            PublicThreadedCommentManager,
+            self,
+        ).get_query_set().filter(
+            Q(is_public=True) | Q(is_approved=True)
         )
+
 
 class ThreadedComment(models.Model):
     """
@@ -143,8 +181,8 @@ class ThreadedComment(models.Model):
 
     It also includes two Managers: ``objects``, which is the same as the normal
     ``objects`` Manager with a few added utility functions (see above), and
-    ``public``, which has those same utility functions but limits the QuerySet to
-    only those values which are designated as public (``is_public=True``).
+    ``public``, which has those same utility functions but limits the QuerySet
+    to only those values which are designated as public (``is_public=True``).
     """
     # Generic Foreign Key Fields
     content_type = models.ForeignKey(ContentType)
@@ -152,26 +190,52 @@ class ThreadedComment(models.Model):
     content_object = generic.GenericForeignKey()
 
     # Hierarchy Field
-    parent = models.ForeignKey('self', null=True, blank=True, default=None, related_name='children')
+    parent = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        related_name='children',
+    )
 
     # User Field
     user = models.ForeignKey(User)
 
     # Date Fields
-    date_submitted = models.DateTimeField(_('date/time submitted'), default = datetime.now)
-    date_modified = models.DateTimeField(_('date/time modified'), default = datetime.now)
-    date_approved = models.DateTimeField(_('date/time approved'), default=None, null=True, blank=True)
+    date_submitted = models.DateTimeField(
+        _('date/time submitted'),
+        default=datetime.now,
+    )
+    date_modified = models.DateTimeField(
+        _('date/time modified'),
+        default=datetime.now,
+    )
+    date_approved = models.DateTimeField(
+        _('date/time approved'),
+        default=None,
+        null=True,
+        blank=True,
+    )
 
     # Meat n' Potatoes
     comment = models.TextField(_('comment'))
-    markup = models.IntegerField(choices=MARKUP_CHOICES, default=DEFAULT_MARKUP, null=True, blank=True)
+    markup = models.IntegerField(
+        choices=MARKUP_CHOICES,
+        default=DEFAULT_MARKUP,
+        null=True,
+        blank=True,
+    )
 
     # Status Fields
-    is_public = models.BooleanField(_('is public'), default = True)
-    is_approved = models.BooleanField(_('is approved'), default = False)
+    is_public = models.BooleanField(_('is public'), default=True)
+    is_approved = models.BooleanField(_('is approved'), default=False)
 
     # Extra Field
-    ip_address = models.IPAddressField(_('IP address'), null=True, blank=True)
+    ip_address = models.IPAddressField(
+        _('IP address'),
+        null=True,
+        blank=True,
+    )
 
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
@@ -212,14 +276,14 @@ class ThreadedComment(models.Model):
                 markup = markup_choice[1]
                 break
         to_return = {
-            'content_object' : self.content_object,
-            'parent' : self.parent,
-            'user' : self.user,
-            'comment' : self.comment,
-            'is_public' : self.is_public,
-            'is_approved' : self.is_approved,
-            'ip_address' : self.ip_address,
-            'markup' : force_unicode(markup),
+            'content_object': self.content_object,
+            'parent': self.parent,
+            'user': self.user,
+            'comment': self.comment,
+            'is_public': self.is_public,
+            'is_approved': self.is_approved,
+            'ip_address': self.ip_address,
+            'markup': force_unicode(markup),
         }
         if show_dates:
             to_return['date_submitted'] = self.date_submitted
@@ -237,17 +301,17 @@ class ThreadedComment(models.Model):
 class FreeThreadedComment(models.Model):
     """
     A threaded comment which need not be associated with an instance of
-    ``django.contrib.auth.models.User``.  Instead, it requires minimally a name,
-    and maximally a name, website, and e-mail address.  It is given its hierarchy
-    by a nullable relationship back on itself named ``parent``.
+    ``django.contrib.auth.models.User``.  Instead, it requires minimally a
+    name, and maximally a name, website, and e-mail address.  It is given its
+    hierarchy by a nullable relationship back on itself named ``parent``.
 
     This ``FreeThreadedComment`` supports several kinds of markup languages,
     including Textile, Markdown, and ReST.
 
     It also includes two Managers: ``objects``, which is the same as the normal
     ``objects`` Manager with a few added utility functions (see above), and
-    ``public``, which has those same utility functions but limits the QuerySet to
-    only those values which are designated as public (``is_public=True``).
+    ``public``, which has those same utility functions but limits the QuerySet
+    to only those values which are designated as public (``is_public=True``).
     """
     # Generic Foreign Key Fields
     content_type = models.ForeignKey(ContentType)
@@ -255,28 +319,54 @@ class FreeThreadedComment(models.Model):
     content_object = generic.GenericForeignKey()
 
     # Hierarchy Field
-    parent = models.ForeignKey('self', null = True, blank=True, default = None, related_name='children')
+    parent = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        related_name='children',
+    )
 
     # User-Replacement Fields
-    name = models.CharField(_('name'), max_length = 128)
-    website = models.URLField(_('site'), blank = True)
-    email = models.EmailField(_('e-mail address'), blank = True)
+    name = models.CharField(_('name'), max_length=128)
+    website = models.URLField(_('site'), blank=True)
+    email = models.EmailField(_('e-mail address'), blank=True)
 
     # Date Fields
-    date_submitted = models.DateTimeField(_('date/time submitted'), default = datetime.now)
-    date_modified = models.DateTimeField(_('date/time modified'), default = datetime.now)
-    date_approved = models.DateTimeField(_('date/time approved'), default=None, null=True, blank=True)
+    date_submitted = models.DateTimeField(
+        _('date/time submitted'),
+        default=datetime.now,
+    )
+    date_modified = models.DateTimeField(
+        _('date/time modified'),
+        default=datetime.now,
+    )
+    date_approved = models.DateTimeField(
+        _('date/time approved'),
+        default=None,
+        null=True,
+        blank=True,
+    )
 
     # Meat n' Potatoes
     comment = models.TextField(_('comment'))
-    markup = models.IntegerField(choices=MARKUP_CHOICES, default=DEFAULT_MARKUP, null=True, blank=True)
+    markup = models.IntegerField(
+        choices=MARKUP_CHOICES,
+        default=DEFAULT_MARKUP,
+        null=True,
+        blank=True,
+    )
 
     # Status Fields
-    is_public = models.BooleanField(_('is public'), default = True)
-    is_approved = models.BooleanField(_('is approved'), default = False)
+    is_public = models.BooleanField(_('is public'), default=True)
+    is_approved = models.BooleanField(_('is approved'), default=False)
 
     # Extra Field
-    ip_address = models.IPAddressField(_('IP address'), null=True, blank=True)
+    ip_address = models.IPAddressField(
+        _('IP address'),
+        null=True,
+        blank=True,
+    )
 
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
@@ -317,16 +407,16 @@ class FreeThreadedComment(models.Model):
                 markup = markup_choice[1]
                 break
         to_return = {
-            'content_object' : self.content_object,
-            'parent' : self.parent,
-            'name' : self.name,
-            'website' : self.website,
-            'email' : self.email,
-            'comment' : self.comment,
-            'is_public' : self.is_public,
-            'is_approved' : self.is_approved,
-            'ip_address' : self.ip_address,
-            'markup' : force_unicode(markup),
+            'content_object': self.content_object,
+            'parent': self.parent,
+            'name': self.name,
+            'website': self.website,
+            'email': self.email,
+            'comment': self.comment,
+            'is_public': self.is_public,
+            'is_approved': self.is_approved,
+            'ip_address': self.ip_address,
+            'markup': force_unicode(markup),
         }
         if show_dates:
             to_return['date_submitted'] = self.date_submitted
