@@ -231,7 +231,7 @@ class ThreadedComment(models.Model):
     is_approved = models.BooleanField(_('is approved'), default=False)
 
     # Extra Field
-    ip_address = models.IPAddressField(
+    ip_address = models.GenericIPAddressField(
         _('IP address'),
         null=True,
         blank=True,
@@ -362,7 +362,7 @@ class FreeThreadedComment(models.Model):
     is_approved = models.BooleanField(_('is approved'), default=False)
 
     # Extra Field
-    ip_address = models.IPAddressField(
+    ip_address = models.GenericIPAddressField(
         _('IP address'),
         null=True,
         blank=True,
