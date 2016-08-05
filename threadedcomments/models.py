@@ -2,7 +2,6 @@ import django
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from django.contrib.auth.models import User
 from datetime import datetime
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
@@ -199,7 +198,7 @@ class ThreadedComment(models.Model):
     )
 
     # User Field
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
     # Date Fields
     date_submitted = models.DateTimeField(

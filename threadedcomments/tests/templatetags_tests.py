@@ -8,7 +8,7 @@ from django.template import Context, Template
 from django.test import TestCase
 from json import loads
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 from threadedcomments.models import FreeThreadedComment, ThreadedComment
@@ -25,6 +25,7 @@ class TemplateTagTestCase(TestCase):
     extra_apps = ['threadedcomments.tests']
 
     def test_get_comment_url(self):
+        User = get_user_model()
 
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
 
@@ -83,6 +84,7 @@ class TemplateTagTestCase(TestCase):
 
     def test_get_comment_count(self):
 
+        User = get_user_model()
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
 
         topic = Person.objects.create(name="Test2")
@@ -128,6 +130,7 @@ class TemplateTagTestCase(TestCase):
 
     def test_get_latest_comments(self):
 
+        User = get_user_model()
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
 
         topic = Person.objects.create(name="Test2")
@@ -179,6 +182,7 @@ class TemplateTagTestCase(TestCase):
 
     def test_get_threaded_comment_tree(self):
 
+        User = get_user_model()
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
 
         topic = Person.objects.create(name="Test2")
@@ -257,6 +261,7 @@ class TemplateTagTestCase(TestCase):
 
     def test_user_comment_tags(self):
 
+        User = get_user_model()
         user1 = User.objects.create_user('eric', 'floguy@gmail.com', password='password')
         user2 = User.objects.create_user('brian', 'brosner@gmail.com', password='password')
 
@@ -288,6 +293,7 @@ class TemplateTagTestCase(TestCase):
 
     def test_markdown_comment(self):
 
+        User = get_user_model()
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
         topic = Person.objects.create(name="Test2")
 
@@ -327,6 +333,7 @@ dog's back.
 
     def test_textile_comment(self):
 
+        User = get_user_model()
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
         topic = Person.objects.create(name="Test2")
 
@@ -424,6 +431,7 @@ So you see, my friends:
 
     def test_rest_comment(self):
 
+        User = get_user_model()
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
         topic = Person.objects.create(name="Test2")
 
@@ -465,6 +473,7 @@ See also ticket `#42`::.
 
     def test_plaintext_comment(self):
 
+        User = get_user_model()
         user = User.objects.create_user('user', 'floguy@gmail.com', password='password')
         topic = Person.objects.create(name="Test2")
 
