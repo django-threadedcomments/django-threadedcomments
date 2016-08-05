@@ -6,8 +6,11 @@ from django.http import Http404, HttpResponse
 from exampleblog.models import BlogPost
 from threadedcomments.models import ThreadedComment, MARKDOWN
 from voting.models import Vote
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, get_user_model
+
+
+User = get_user_model()
+
 
 class PostForm(forms.Form):
     comment = forms.CharField(widget=forms.Textarea)
