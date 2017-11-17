@@ -1,13 +1,10 @@
-try:
-    from django.conf.urls.defaults import patterns, url
-except ImportError:
-    from django.conf.urls import patterns, url
+from django.conf.urls import url
 from threadedcomments.models import FreeThreadedComment
 from threadedcomments import views
 
-free = {'model' : FreeThreadedComment}
+free = {'model': FreeThreadedComment}
 
-urlpatterns = patterns('',
+urlpatterns = (
     ### Comments ###
     url(r'^comment/(?P<content_type>\d+)/(?P<object_id>\d+)/$', views.comment, name="tc_comment"),
     url(r'^comment/(?P<content_type>\d+)/(?P<object_id>\d+)/(?P<parent_id>\d+)/$', views.comment, name="tc_comment_parent"),
