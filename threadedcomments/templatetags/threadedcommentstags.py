@@ -125,7 +125,7 @@ def auto_transform_markup(comment):
     """
     Given a comment (``ThreadedComment`` or ``FreeThreadedComment``), this tag
     looks up the markup type of the comment and formats the output accordingly.
-    
+
     It can also output the formatted content to a context variable, if a context name is
     specified.
     """
@@ -271,10 +271,10 @@ class ThreadedCommentCountNode(template.Node):
         content_object = self.content_object.resolve(context)
         context[self.context_name] = ThreadedComment.public.all_for_object(content_object).count()
         return ''
-        
+
 def do_get_free_comment_count(parser, token):
     """
-    Gets a count of how many FreeThreadedComment objects are attached to the 
+    Gets a count of how many FreeThreadedComment objects are attached to the
     given object.
     """
     error_message = "%r tag must be of format {%% %r for OBJECT as CONTEXT_VARIABLE %%}" % (token.contents.split()[0], token.contents.split()[0])
@@ -365,7 +365,7 @@ class LatestCommentsNode(template.Node):
             comments = FreeThreadedComment.objects.order_by('-date_submitted')[:self.num]
         else:
             comments = ThreadedComment.objects.order_by('-date_submitted')[:self.num]
-        context[self.context_name] = comments
+        context[self.context_name] = list(comments)
         return ''
 
 def do_get_user_comments(parser, token):
@@ -387,7 +387,7 @@ class UserCommentsNode(template.Node):
         self.context_name = context_name
     def render(self, context):
         user = self.user.resolve(context)
-        context[self.context_name] = user.threadedcomment_set.all()
+        context[self.context_name] = list(user.threadedcomment_set.all())
         return ''
 
 def do_get_user_comment_count(parser, token):
