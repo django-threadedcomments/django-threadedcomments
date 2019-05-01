@@ -6,7 +6,7 @@ from datetime import datetime
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 
 DEFAULT_MAX_COMMENT_LENGTH = getattr(
     settings,
@@ -282,7 +282,7 @@ class ThreadedComment(models.Model):
             'is_public': self.is_public,
             'is_approved': self.is_approved,
             'ip_address': self.ip_address,
-            'markup': force_unicode(markup),
+            'markup': force_text(markup),
         }
         if show_dates:
             to_return['date_submitted'] = self.date_submitted
@@ -415,7 +415,7 @@ class FreeThreadedComment(models.Model):
             'is_public': self.is_public,
             'is_approved': self.is_approved,
             'ip_address': self.ip_address,
-            'markup': force_unicode(markup),
+            'markup': force_text(markup),
         }
         if show_dates:
             to_return['date_submitted'] = self.date_submitted

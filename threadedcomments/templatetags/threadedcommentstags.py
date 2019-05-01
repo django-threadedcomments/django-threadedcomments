@@ -1,8 +1,8 @@
 import re
 from django import template
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
-from django.utils.encoding import force_unicode
+from django.urls import reverse
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from threadedcomments.models import ThreadedComment, FreeThreadedComment
 from threadedcomments.forms import ThreadedCommentForm, FreeThreadedCommentForm
