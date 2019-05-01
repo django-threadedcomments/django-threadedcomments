@@ -1,8 +1,10 @@
 import re
+import six
+
 from django import template
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
-from django.utils.encoding import force_unicode
+from django.urls import reverse
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from threadedcomments.models import ThreadedComment, FreeThreadedComment
 from threadedcomments.forms import ThreadedCommentForm, FreeThreadedCommentForm
@@ -29,7 +31,10 @@ def get_comment_url(content_object, parent=None):
     kwargs = get_contenttype_kwargs(content_object)
     if parent:
         if not isinstance(parent, ThreadedComment):
-            raise template.TemplateSyntaxError, "get_comment_url requires its parent object to be of type ThreadedComment"
+            six.raise_from(
+                template.TemplateSyntaxError,
+                "get_comment_url requires its parent object to be of type ThreadedComment",
+            )
         kwargs.update({'parent_id' : getattr(parent, 'pk', getattr(parent, 'id'))})
         return reverse('tc_comment_parent', kwargs=kwargs)
     else:
@@ -45,7 +50,10 @@ def get_comment_url_ajax(content_object, parent=None, ajax_type='json'):
     kwargs.update({'ajax' : ajax_type})
     if parent:
         if not isinstance(parent, ThreadedComment):
-            raise template.TemplateSyntaxError, "get_comment_url_ajax requires its parent object to be of type ThreadedComment"
+            six.raise_from(
+                template.TemplateSyntaxError,
+                "get_comment_url_ajax requires its parent object to be of type ThreadedComment",
+            )
         kwargs.update({'parent_id' : getattr(parent, 'pk', getattr(parent, 'id'))})
         return reverse('tc_comment_parent_ajax', kwargs=kwargs)
     else:
@@ -58,7 +66,10 @@ def get_comment_url_json(content_object, parent=None):
     try:
         return get_comment_url_ajax(content_object, parent, ajax_type="json")
     except template.TemplateSyntaxError:
-        raise template.TemplateSyntaxError, "get_comment_url_json requires its parent object to be of type ThreadedComment"
+        six.raise_from(
+            template.TemplateSyntaxError,
+            "get_comment_url_json requires its parent object to be of type ThreadedComment",
+        )
     return ''
 
 def get_comment_url_xml(content_object, parent=None):
@@ -68,7 +79,10 @@ def get_comment_url_xml(content_object, parent=None):
     try:
         return get_comment_url_ajax(content_object, parent, ajax_type="xml")
     except template.TemplateSyntaxError:
-        raise template.TemplateSyntaxError, "get_comment_url_xml requires its parent object to be of type ThreadedComment"
+        six.raise_from(
+            template.TemplateSyntaxError,
+            "get_comment_url_xml requires its parent object to be of type ThreadedComment",
+        )
     return ''
 
 def get_free_comment_url(content_object, parent=None):
@@ -79,7 +93,10 @@ def get_free_comment_url(content_object, parent=None):
     kwargs = get_contenttype_kwargs(content_object)
     if parent:
         if not isinstance(parent, FreeThreadedComment):
-            raise template.TemplateSyntaxError, "get_free_comment_url requires its parent object to be of type FreeThreadedComment"
+            six.raise_from(
+                template.TemplateSyntaxError,
+                "get_free_comment_url requires its parent object to be of type FreeThreadedComment",
+            )
         kwargs.update({'parent_id' : getattr(parent, 'pk', getattr(parent, 'id'))})
         return reverse('tc_free_comment_parent', kwargs=kwargs)
     else:
@@ -95,7 +112,10 @@ def get_free_comment_url_ajax(content_object, parent=None, ajax_type='json'):
     kwargs.update({'ajax' : ajax_type})
     if parent:
         if not isinstance(parent, FreeThreadedComment):
-            raise template.TemplateSyntaxError, "get_free_comment_url_ajax requires its parent object to be of type FreeThreadedComment"
+            six.raise_from(
+                template.TemplateSyntaxError,
+                "get_free_comment_url_ajax requires its parent object to be of type FreeThreadedComment",
+            )
         kwargs.update({'parent_id' : getattr(parent, 'pk', getattr(parent, 'id'))})
         return reverse('tc_free_comment_parent_ajax', kwargs=kwargs)
     else:
@@ -108,7 +128,10 @@ def get_free_comment_url_json(content_object, parent=None):
     try:
         return get_free_comment_url_ajax(content_object, parent, ajax_type="json")
     except template.TemplateSyntaxError:
-        raise template.TemplateSyntaxError, "get_free_comment_url_json requires its parent object to be of type FreeThreadedComment"
+        six.raise_from(
+            template.TemplateSyntaxError,
+            "get_free_comment_url_json requires its parent object to be of type FreeThreadedComment",
+        )
     return ''
 
 def get_free_comment_url_xml(content_object, parent=None):
@@ -118,7 +141,10 @@ def get_free_comment_url_xml(content_object, parent=None):
     try:
         return get_free_comment_url_ajax(content_object, parent, ajax_type="xml")
     except template.TemplateSyntaxError:
-        raise template.TemplateSyntaxError, "get_free_comment_url_xml requires its parent object to be of type FreeThreadedComment"
+        six.raise_from(
+            template.TemplateSyntaxError,
+            "get_free_comment_url_xml requires its parent object to be of type FreeThreadedComment",
+        )
     return ''
 
 def auto_transform_markup(comment):
@@ -142,24 +168,30 @@ def auto_transform_markup(comment):
             from django.contrib.markup.templatetags.markup import restructuredtext
             return restructuredtext(comment.comment)
 #        elif comment.markup == HTML:
-#            return mark_safe(force_unicode(comment.comment))
+#            return mark_safe(force_text(comment.comment))
         elif comment.markup == PLAINTEXT:
             return escape(comment.comment)
     except ImportError:
         # Not marking safe, in case tag fails and users input malicious code.
-        return force_unicode(comment.comment)
+        return force_text(comment.comment)
 
 def do_auto_transform_markup(parser, token):
     try:
         split = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, "%r tag must be of format {%% %r COMMENT %%} or of format {%% %r COMMENT as CONTEXT_VARIABLE %%}" % (token.contents.split()[0], token.contents.split()[0], token.contents.split()[0])
+        six.raise_from(
+            template.TemplateSyntaxError,
+            "%r tag must be of format {%% %r COMMENT %%} or of format {%% %r COMMENT as CONTEXT_VARIABLE %%}" % (token.contents.split()[0], token.contents.split()[0], token.contents.split()[0]),
+        )
     if len(split) == 2:
         return AutoTransformMarkupNode(split[1])
     elif len(split) == 4:
         return AutoTransformMarkupNode(split[1], context_name=split[3])
     else:
-        raise template.TemplateSyntaxError, "Invalid number of arguments for tag %r" % split[0]
+        six.raise_from(
+            template.TemplateSyntaxError,
+            "Invalid number of arguments for tag %r" % split[0],
+        )
 
 class AutoTransformMarkupNode(template.Node):
     def __init__(self, comment, context_name=None):
@@ -258,9 +290,15 @@ def do_get_comment_count(parser, token):
     try:
         split = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if split[1] != 'for' or split[3] != 'as':
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     return ThreadedCommentCountNode(split[2], split[4])
 
 class ThreadedCommentCountNode(template.Node):
@@ -281,9 +319,15 @@ def do_get_free_comment_count(parser, token):
     try:
         split = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if split[1] != 'for' or split[3] != 'as':
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     return FreeThreadedCommentCountNode(split[2], split[4])
 
 class FreeThreadedCommentCountNode(template.Node):
@@ -313,11 +357,20 @@ def do_get_threaded_comment_form(parser, token):
     try:
         split = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if split[1] != 'as':
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if len(split) != 3:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if "free" in split[0]:
         is_free = True
     else:
@@ -344,11 +397,20 @@ def do_get_latest_comments(parser, token):
     try:
         split = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if len(split) != 4:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if split[2] != 'as':
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if "free" in split[0]:
         is_free = True
     else:
@@ -357,7 +419,7 @@ def do_get_latest_comments(parser, token):
 
 class LatestCommentsNode(template.Node):
     def __init__(self, num, context_name, free=False):
-        self.num = num
+        self.num = int(num)
         self.context_name = context_name
         self.free = free
     def render(self, context):
@@ -376,9 +438,15 @@ def do_get_user_comments(parser, token):
     try:
         split = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if len(split) != 5:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     return UserCommentsNode(split[2], split[4])
 
 class UserCommentsNode(template.Node):
@@ -398,9 +466,15 @@ def do_get_user_comment_count(parser, token):
     try:
         split = token.split_contents()
     except ValueError:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     if len(split) != 5:
-        raise template.TemplateSyntaxError, error_message
+        six.raise_from(
+            template.TemplateSyntaxError,
+            error_message,
+        )
     return UserCommentCountNode(split[2], split[4])
 
 class UserCommentCountNode(template.Node):

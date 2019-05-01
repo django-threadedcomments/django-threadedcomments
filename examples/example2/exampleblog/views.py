@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django import newforms as forms
 from django.http import Http404, HttpResponse
 from exampleblog.models import BlogPost
