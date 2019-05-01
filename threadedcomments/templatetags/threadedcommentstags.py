@@ -419,7 +419,7 @@ def do_get_latest_comments(parser, token):
 
 class LatestCommentsNode(template.Node):
     def __init__(self, num, context_name, free=False):
-        self.num = num
+        self.num = int(num)
         self.context_name = context_name
         self.free = free
     def render(self, context):
