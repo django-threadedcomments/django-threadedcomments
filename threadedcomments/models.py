@@ -1,4 +1,6 @@
 import django
+import six
+
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -169,6 +171,7 @@ class PublicThreadedCommentManager(ThreadedCommentManager):
         )
 
 
+@six.python_2_unicode_compatible
 class ThreadedComment(models.Model):
     """
     A threaded comment which must be associated with an instance of
@@ -239,7 +242,7 @@ class ThreadedComment(models.Model):
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.comment) > 50:
             return self.comment[:50] + "..."
         return self.comment[:50]
@@ -297,6 +300,7 @@ class ThreadedComment(models.Model):
         get_latest_by = "date_submitted"
 
 
+@six.python_2_unicode_compatible
 class FreeThreadedComment(models.Model):
     """
     A threaded comment which need not be associated with an instance of
@@ -370,7 +374,7 @@ class FreeThreadedComment(models.Model):
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.comment) > 50:
             return self.comment[:50] + "..."
         return self.comment[:50]
