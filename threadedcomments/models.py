@@ -187,7 +187,10 @@ class ThreadedComment(models.Model):
     to only those values which are designated as public (``is_public=True``).
     """
     # Generic Foreign Key Fields
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+    )
     object_id = models.PositiveIntegerField(_('object ID'))
     content_object = GenericForeignKey()
 
@@ -198,10 +201,14 @@ class ThreadedComment(models.Model):
         blank=True,
         default=None,
         related_name='children',
+        on_delete=models.CASCADE,
     )
 
     # User Field
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
 
     # Date Fields
     date_submitted = models.DateTimeField(
@@ -317,7 +324,10 @@ class FreeThreadedComment(models.Model):
     to only those values which are designated as public (``is_public=True``).
     """
     # Generic Foreign Key Fields
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+    )
     object_id = models.PositiveIntegerField(_('object ID'))
     content_object = GenericForeignKey()
 
@@ -328,6 +338,7 @@ class FreeThreadedComment(models.Model):
         blank=True,
         default=None,
         related_name='children',
+        on_delete=models.CASCADE,
     )
 
     # User-Replacement Fields
