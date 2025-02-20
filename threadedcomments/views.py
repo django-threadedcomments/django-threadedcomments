@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render
 from django.template import Context, Template
-from django.utils.http import urlquote
+from urllib.parse import quote
 from django.conf import settings
 from threadedcomments.forms import FreeThreadedCommentForm, ThreadedCommentForm
 from threadedcomments.models import (
@@ -228,7 +228,7 @@ def comment_delete(
     tc = get_object_or_404(model, id=int(object_id))
     if not permission_callback(tc, request.user):
         login_url = settings.LOGIN_URL
-        current_url = urlquote(request.get_full_path())
+        current_url = quote(request.get_full_path())
         return HttpResponseRedirect("%s?next=%s" % (login_url, current_url))
     if request.method == "POST":
         tc.delete()
