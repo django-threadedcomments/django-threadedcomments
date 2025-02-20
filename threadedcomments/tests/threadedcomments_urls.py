@@ -1,9 +1,7 @@
-try:
-    from django.conf.urls.defaults import *
-except ImportError:
-    from django.conf.urls import *
+from django.conf.urls import include
+from django.urls import re_path
 
 
-urlpatterns = patterns("",
-    url(r"", include("threadedcomments.urls")),
-)
+urlpatterns = [
+    re_path(r"", include("threadedcomments.urls")),
+]
