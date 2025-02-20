@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='django-threadedcomments',
-    version='0.5.5',
+    version='0.5.6',
     description='A simple yet flexible threaded commenting system.',
     author='Eric Florenzano',
     author_email='floguy@gmail.com',
