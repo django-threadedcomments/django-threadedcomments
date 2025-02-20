@@ -4,7 +4,7 @@ import six
 from django import template
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe
 from threadedcomments.models import ThreadedComment, FreeThreadedComment
 from threadedcomments.forms import ThreadedCommentForm, FreeThreadedCommentForm
@@ -168,12 +168,12 @@ def auto_transform_markup(comment):
             from django.contrib.markup.templatetags.markup import restructuredtext
             return restructuredtext(comment.comment)
 #        elif comment.markup == HTML:
-#            return mark_safe(force_text(comment.comment))
+#            return mark_safe(force_str(comment.comment))
         elif comment.markup == PLAINTEXT:
             return escape(comment.comment)
     except ImportError:
         # Not marking safe, in case tag fails and users input malicious code.
-        return force_text(comment.comment)
+        return force_str(comment.comment)
 
 def do_auto_transform_markup(parser, token):
     try:
