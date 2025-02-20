@@ -1,13 +1,13 @@
-from django.conf.urls import include
-from django.urls import re_path
+from django.conf.urls.defaults import *
 from django.contrib import admin
 
 # Enable the admin
 admin.autodiscover()
 
-urlpatterns = [
-    re_path(r'^admin/', include(admin.site.urls)),
-    re_path(r'^comments/', include('django.contrib.comments.urls')),
-    re_path(r'^$', 'core.views.home', name='homepage'),
-    re_path(r'^message/(?P<id>.+)$', 'core.views.message', name='message_detail'),
-]
+urlpatterns = patterns('',
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^comments/', include('django.contrib.comments.urls')),
+
+    url(r'^$', 'core.views.home', name='homepage'),
+    url(r'^message/(?P<id>.+)$', 'core.views.message', name='message_detail'),
+)

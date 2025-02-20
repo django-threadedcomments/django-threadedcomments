@@ -34,9 +34,9 @@ the placeholder ``comments/list.html`` template will already be replaced by a th
 
 Make sure django.contrib.comments_ is configured in ``urls.py``::
 
-    urlpatterns += [
-        re_path(r'^articles/comments/', include('django.contrib.comments.urls')),
-    ]
+    urlpatterns += patterns('',
+        url(r'^articles/comments/', include('django.contrib.comments.urls')),
+    )
 
 Provide a template that displays the comments for the ``object`` (e.g. article or blog entry)::
 

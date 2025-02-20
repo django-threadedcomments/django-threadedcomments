@@ -1,8 +1,3 @@
-Version 0.9.1, 15th Feb 2025
---------------------------
-
-Upgrade for Django 4.2 compatibility
-
 Version 0.9, 15th May 2013
 --------------------------
 
