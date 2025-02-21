@@ -23,11 +23,6 @@ __all__ = ("ViewsTestCase",)
 class ViewsTestCase(TestCase):
     urls = "threadedcomments.tests.threadedcomments_urls"
 
-    def setUp(self):
-        super().setUp()
-        from django.conf import settings
-        settings.SECRET_KEY = 'dummy-key-for-tests'
-
     def test_freecomment_create(self):
 
         topic = Person.objects.create(name="Test2")
