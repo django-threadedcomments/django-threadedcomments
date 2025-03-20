@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render
 from django.template import Context, Template
-from urllib.parse import quote
 from django.conf import settings
 from threadedcomments.forms import FreeThreadedCommentForm, ThreadedCommentForm
 from threadedcomments.models import (
@@ -13,6 +12,7 @@ from threadedcomments.models import (
     DEFAULT_MAX_COMMENT_LENGTH,
 )
 from threadedcomments.utils import JSONResponse, XMLResponse
+from urllib.parse import quote
 
 
 def _adjust_max_comment_length(form, field_name='comment'):

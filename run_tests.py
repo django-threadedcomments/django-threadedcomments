@@ -10,6 +10,7 @@ if not settings.configured:
                 'ENGINE': 'django.db.backends.sqlite3',
             }
         },
+        SECRET_KEY='dummy-key-for-tests',
         TEMPLATE_LOADERS=(
             'django.template.loaders.app_directories.Loader',
         ),
