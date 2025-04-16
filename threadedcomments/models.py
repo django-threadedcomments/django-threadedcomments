@@ -1,13 +1,14 @@
 import django
+import six
+
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
-from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
 from datetime import datetime
 from django.db.models import Q
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_str
 
 DEFAULT_MAX_COMMENT_LENGTH = getattr(
     settings,
@@ -170,6 +171,7 @@ class PublicThreadedCommentManager(ThreadedCommentManager):
         )
 
 
+@six.python_2_unicode_compatible
 class ThreadedComment(models.Model):
     """
     A threaded comment which must be associated with an instance of
@@ -185,9 +187,12 @@ class ThreadedComment(models.Model):
     to only those values which are designated as public (``is_public=True``).
     """
     # Generic Foreign Key Fields
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+    )
     object_id = models.PositiveIntegerField(_('object ID'))
-    content_object = generic.GenericForeignKey()
+    content_object = GenericForeignKey()
 
     # Hierarchy Field
     parent = models.ForeignKey(
@@ -196,10 +201,14 @@ class ThreadedComment(models.Model):
         blank=True,
         default=None,
         related_name='children',
+        on_delete=models.CASCADE,
     )
 
     # User Field
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
 
     # Date Fields
     date_submitted = models.DateTimeField(
@@ -240,7 +249,7 @@ class ThreadedComment(models.Model):
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.comment) > 50:
             return self.comment[:50] + "..."
         return self.comment[:50]
@@ -283,7 +292,7 @@ class ThreadedComment(models.Model):
             'is_public': self.is_public,
             'is_approved': self.is_approved,
             'ip_address': self.ip_address,
-            'markup': force_unicode(markup),
+            'markup': force_str(markup),
         }
         if show_dates:
             to_return['date_submitted'] = self.date_submitted
@@ -298,6 +307,7 @@ class ThreadedComment(models.Model):
         get_latest_by = "date_submitted"
 
 
+@six.python_2_unicode_compatible
 class FreeThreadedComment(models.Model):
     """
     A threaded comment which need not be associated with an instance of
@@ -314,9 +324,12 @@ class FreeThreadedComment(models.Model):
     to only those values which are designated as public (``is_public=True``).
     """
     # Generic Foreign Key Fields
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+    )
     object_id = models.PositiveIntegerField(_('object ID'))
-    content_object = generic.GenericForeignKey()
+    content_object = GenericForeignKey()
 
     # Hierarchy Field
     parent = models.ForeignKey(
@@ -325,6 +338,7 @@ class FreeThreadedComment(models.Model):
         blank=True,
         default=None,
         related_name='children',
+        on_delete=models.CASCADE,
     )
 
     # User-Replacement Fields
@@ -371,7 +385,7 @@ class FreeThreadedComment(models.Model):
     objects = ThreadedCommentManager()
     public = PublicThreadedCommentManager()
 
-    def __unicode__(self):
+    def __str__(self):
         if len(self.comment) > 50:
             return self.comment[:50] + "..."
         return self.comment[:50]
@@ -416,7 +430,7 @@ class FreeThreadedComment(models.Model):
             'is_public': self.is_public,
             'is_approved': self.is_approved,
             'ip_address': self.ip_address,
-            'markup': force_unicode(markup),
+            'markup': force_str(markup),
         }
         if show_dates:
             to_return['date_submitted'] = self.date_submitted

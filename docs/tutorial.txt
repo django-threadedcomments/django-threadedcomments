@@ -127,13 +127,16 @@ your ``ROOT_URLCONF``) you include 'threadedcomments.urls'.
 
 In the end, your ``urls.py`` file may look something like this::
 
-    from django.conf.urls.defaults import *
+```python
+    from django.conf.urls import include
+    from django.urls import re_path
 
-    urlpatterns = patterns('',
-        (r'^blog/', include('blog.urls')),
-        (r'^admin/', include('django.contrib.admin.urls')),
-        (r'^threadedcomments/', include('threadedcomments.urls')),
-    )
+    urlpatterns = [
+        re_path(r'^blog/', include('blog.urls')),
+        re_path(r'^admin/', include('django.contrib.admin.urls')),
+        re_path(r'^threadedcomments/', include('threadedcomments.urls')),
+    ]
+```
 
 Make sure to run ``python manage.py syncdb`` to finish off this step.
 

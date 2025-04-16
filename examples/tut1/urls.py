@@ -1,7 +1,10 @@
-from django.conf.urls.defaults import patterns, include
+from django.conf.urls import include
+from django.urls import re_path
 
-urlpatterns = patterns('',
-     (r'^blog/$', 'blog.views.latest_post'),
-     (r'^admin/', include('django.contrib.admin.urls')),
-     (r'^threadedcomments/', include('threadedcomments.urls')),
-)
+from blog.views import latest_post
+
+urlpatterns = [
+     re_path(r'^blog/$', latest_post),
+     re_path(r'^admin/', include('django.contrib.admin.urls')),
+     re_path(r'^threadedcomments/', include('threadedcomments.urls')),
+]

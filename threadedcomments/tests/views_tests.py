@@ -3,12 +3,12 @@ import datetime
 from xml.dom.minidom import parseString
 
 from django.core import mail
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import Context, Template
 from django.test import TestCase
 from json import loads
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 from threadedcomments.models import FreeThreadedComment, ThreadedComment
@@ -310,6 +310,7 @@ class ViewsTestCase(TestCase):
         })
 
     def create_user_and_login(self):
+        User = get_user_model()
         user = User.objects.create_user(
             'testuser',
             'testuser@gmail.com',
@@ -400,6 +401,7 @@ class ViewsTestCase(TestCase):
 
     def test_comment_edit_not_authorized(self):
 
+        User = get_user_model()
         comment_creator = User.objects.create_user(
             'testuser2',
             'testuser2@gmail.com',
@@ -522,6 +524,7 @@ class ViewsTestCase(TestCase):
         })
 
     def test_comment_json_edit_not_authorized(self):
+        User = get_user_model()
 
         user = self.create_user_and_login()
         comment_creator = User.objects.create_user(
@@ -611,6 +614,7 @@ class ViewsTestCase(TestCase):
         })
 
     def test_comment_xml_edit_not_authorized(self):
+        User = get_user_model()
 
         user = self.create_user_and_login()
         comment_creator = User.objects.create_user(
@@ -746,6 +750,7 @@ class ViewsTestCase(TestCase):
         })
 
     def test_freecomment_delete(self):
+        User = get_user_model()
 
         user = User.objects.create_user(
             'testuser',
@@ -777,7 +782,7 @@ class ViewsTestCase(TestCase):
         user.save()
 
         response = self.client.post(url, {'next': '/'})
-        self.assertEquals(response['Location'], 'http://testserver/')
+        self.assertEquals(response['Location'], '/')
         self.assertRaises(
             FreeThreadedComment.DoesNotExist,
             lambda: FreeThreadedComment.objects.get(id=deleted_id)
@@ -793,6 +798,7 @@ class ViewsTestCase(TestCase):
         self.assertEquals(o, True)
 
     def test_comment_delete(self):
+        User = get_user_model()
 
         some_other_guy = User.objects.create_user(
             'some_other_guy',
@@ -827,7 +833,7 @@ class ViewsTestCase(TestCase):
         user.save()
 
         response = self.client.post(url, {'next' : '/'})
-        self.assertEquals(response['Location'], 'http://testserver/')
+        self.assertEquals(response['Location'], '/')
         self.assertRaises(
             ThreadedComment.DoesNotExist,
             lambda: ThreadedComment.objects.get(id=deleted_id)

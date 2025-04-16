@@ -10,8 +10,8 @@ Models
 
 *threadedcomments* has two basic models that are included and supported by
 default: ``ThreadedComment``, and ``FreeThreadedComment``.  The difference
-between these two models is slight.  In essence, every ``ThreadedComment`` 
-instance is associated with a user from ``django.contrib.auth.models.User``.
+between these two models is slight.  In essence, every ``ThreadedComment``
+instance is associated with a user from ``settings.AUTH_USER_MODEL``.
 While ``FreeThreadedComment`` has no such user association, it provides a few
 other identifying fields instead.
 
@@ -93,8 +93,8 @@ The following field is extra metadata that may be generally useful:
 for this reason that there is a required foreign key to ``User``.
 
 :``user`` [``ForeignKey``]:
-    Associates this comment with a particular user from 
-    ``django.contrib.auth.models.User``.
+    Associates this comment with a particular user from
+    ``settings.AUTH_USER_MODEL``.
 
 
 ``FreeThreadedComment``
