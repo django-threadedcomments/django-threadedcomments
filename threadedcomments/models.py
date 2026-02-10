@@ -4,8 +4,8 @@ import six
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from datetime import datetime
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.utils.encoding import force_str
@@ -213,11 +213,11 @@ class ThreadedComment(models.Model):
     # Date Fields
     date_submitted = models.DateTimeField(
         _('date/time submitted'),
-        default=datetime.now,
+        default=timezone.now,
     )
     date_modified = models.DateTimeField(
         _('date/time modified'),
-        default=datetime.now,
+        default=timezone.now,
     )
     date_approved = models.DateTimeField(
         _('date/time approved'),
@@ -257,9 +257,9 @@ class ThreadedComment(models.Model):
     def save(self, **kwargs):
         if not self.markup:
             self.markup = DEFAULT_MARKUP
-        self.date_modified = datetime.now()
+        self.date_modified = timezone.now()
         if not self.date_approved and self.is_approved:
-            self.date_approved = datetime.now()
+            self.date_approved = timezone.now()
         super(ThreadedComment, self).save(**kwargs)
 
     def get_content_object(self):
@@ -349,11 +349,11 @@ class FreeThreadedComment(models.Model):
     # Date Fields
     date_submitted = models.DateTimeField(
         _('date/time submitted'),
-        default=datetime.now,
+        default=timezone.now,
     )
     date_modified = models.DateTimeField(
         _('date/time modified'),
-        default=datetime.now,
+        default=timezone.now,
     )
     date_approved = models.DateTimeField(
         _('date/time approved'),
@@ -393,9 +393,9 @@ class FreeThreadedComment(models.Model):
     def save(self, **kwargs):
         if not self.markup:
             self.markup = DEFAULT_MARKUP
-        self.date_modified = datetime.now()
+        self.date_modified = timezone.now()
         if not self.date_approved and self.is_approved:
-            self.date_approved = datetime.now()
+            self.date_approved = timezone.now()
         super(FreeThreadedComment, self).save()
 
     def get_content_object(self, **kwargs):
